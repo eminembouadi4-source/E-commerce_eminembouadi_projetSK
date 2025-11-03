@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Panier - E-commerce{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h1>🛒 Mon Panier</h1>
+        {% if cart.items.count > 0 %}
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <span style="font-size: 1.1rem; color: #333;">
+                Total: <strong>{{ cart.total_price }} €</strong>
+            </span>
+            <a href="{% url 'checkout' %}" class="btn btn-success" style="padding: 1rem 2rem;">
+                 Commander
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if cart.items.count > 0 %}
+    <div class="card">
+        <div class="table">
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Prix unitaire</th>
+                        <th>Quantité</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart.items.all %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                <div>
+                                    <strong>{{ item.product.name }}</strong>
+                                    <div style="color: #666; font-size: 0.9rem;">
+                                        Catégorie: {{ item.product.category.name }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ item.product.price }} €</td>
+                        <td>
+                            <form method="post" action="{% url 'update_cart_item' item.id %}" style="display: flex; align-items: center; gap: 0.5rem;">
+                                {% csrf_token %}
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" 
+                                       style="width: 70px; padding: 0.5rem; border: 2px solid #e9ecef; border-radius: 6px; text-align: center;">
+                                <button type="submit" class="btn" style="padding: 0.5rem; background: #17a2b8; color: white;">
+                                    🔄
+                                </button>
+                            </form>
+                        </td>
+                        <td>
+                            <strong>{{ item.total_price }} €</strong>
+                        </td>
+                        <td>
+                            <a href="{% url 'remove_from_cart' item.id %}" class="btn btn-danger" 
+                               style="padding: 0.5rem; font-size: 0.8rem;" 
+                               onclick="return confirm('Êtes-vous sûr de vouloir retirer ce produit du panier ?')">
+                                 Supprimer
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Résumé du panier -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e9ecef;">
+            <div>
+                <h3 style="margin-bottom: 1rem;"> Récapitulatif</h3>
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+                    <div style="display: flex; justify-content: between; margin-bottom: 0.5rem;">
+                        <span>Nombre d'articles:</span>
+                        <strong>{{ cart.total_items }}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: between; margin-bottom: 0.5rem;">
+                        <span>Sous-total:</span>
+                        <strong>{{ cart.total_price }} €</strong>
+                    </div>
+                    <div style="display: flex; justify-content: between; margin-bottom: 0.5rem;">
+                        <span>Livraison:</span>
+                        <strong>Gratuite</strong>
+                    </div>
+                    <div style="display: flex; justify-content: between; font-size: 1.2rem; padding-top: 1rem; border-top: 1px solid #dee2e6;">
+                        <span>Total:</span>
+                        <strong style="color: #28a745;">{{ cart.total_price }} €</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 style="margin-bottom: 1rem;"> Passer la commande</h3>
+                <div style="background: #e7f3ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #007bff;">
+                    <p style="margin-bottom: 1rem; color: #004085;">
+                        Votre commande est prête ! Cliquez sur le bouton ci-dessous pour finaliser votre achat.
+                    </p>
+                    <a href="{% url 'checkout' %}" class="btn btn-success" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                         Procéder au paiement
+                    </a>
+                    <p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                        Paiement sécurisé • Livraison rapide
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: between; margin-top: 2rem; gap: 1rem;">
+        <a href="{% url 'product_list' %}" class="btn" style="flex: 1; text-align: center; padding: 1rem;">
+            ← Continuer mes achats
+        </a>
+        <a href="{% url 'checkout' %}" class="btn btn-success" style="flex: 1; text-align: center; padding: 1rem; font-size: 1.1rem;">
+             Commander maintenant
+        </a>
+    </div>
+
+    {% else %}
+    <div class="card" style="text-align: center; padding: 4rem;">
+        <div style="font-size: 5rem; margin-bottom: 2rem;">🛒</div>
+        <h2 style="margin-bottom: 1rem; color: #666;">Votre panier est vide</h2>
+        <p style="color: #999; margin-bottom: 2rem; font-size: 1.1rem;">
+            Découvrez nos produits et remplissez votre panier avec vos articles préférés.
+        </p>
+        <a href="{% url 'product_list' %}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+             Découvrir les produits
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

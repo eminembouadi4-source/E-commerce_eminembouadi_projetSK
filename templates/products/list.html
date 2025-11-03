@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Produits - E-commerce{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <h1> Tous nos produits</h1>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <span style="color: #666;">{{ products.count }} produit(s)</span>
+        {% if user.user_type == 'vendeur' and user.is_approved %}
+            <a href="{% url 'add_product' %}" class="btn btn-success">➕ Ajouter un produit</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if products %}
+<div class="grid grid-4">
+    {% for product in products %}
+    <div class="product-card">
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
+             style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0;">
+        
+        <div class="product-info">
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem; color: #333;">{{ product.name }}</h3>
+            
+            <div style="margin-bottom: 0.5rem;">
+                <span class="badge" style="background: #e9ecef; color: #495057; font-size: 0.8rem;">
+                    {{ product.category.name }}
+                </span>
+            </div>
+            
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.4;">
+                {{ product.description|truncatewords:15 }}
+            </p>
+            
+            <div class="product-price" style="font-size: 1.25rem; font-weight: bold; color: #28a745; margin-bottom: 0.5rem;">
+                {{ product.price }} €
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span class="font-size: 0.8rem; color: {% if product.stock > 10 %}#28a745{% elif product.stock > 0 %}#ffc107{% else %}#dc3545{% endif %};">
+                    {% if product.stock > 10 %}
+                        ✅ En stock
+                    {% elif product.stock > 0 %}
+                        ⚠️ Stock faible
+                    {% else %}
+                        ❌ Rupture
+                    {% endif %}
+                    ({{ product.stock }})
+                </span>
+                
+                <span style="font-size: 0.8rem; color: #6c757d;">
+                    Par {{ product.vendeur.username }}
+                </span>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{% url 'product_detail' product.id %}" class="btn" style="flex: 1; padding: 0.5rem; text-align: center;">
+                     Voir
+                </a>
+                
+                {% if user.is_authenticated and product.stock > 0 %}
+                    <a href="{% url 'add_to_cart' product.id %}" class="btn btn-primary" style="flex: 1; padding: 0.5rem; text-align: center;">
+                        🛒 Ajouter
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 3rem;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">📭</div>
+    <h3 style="margin-bottom: 1rem; color: #666;">Aucun produit disponible</h3>
+    <p style="color: #999;">Revenez plus tard pour découvrir nos nouveaux produits.</p>
+</div>
+{% endif %}
+{% endblock %}

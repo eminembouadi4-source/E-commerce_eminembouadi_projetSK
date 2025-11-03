@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscription - E-commerce{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 2rem auto; padding: 0 1rem;">
+    <div class="card">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: #333;">📝 Créer un compte</h2>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nom d'utilisateur</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.username.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.email.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Type de compte</label>
+                {{ form.user_type }}
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Téléphone</label>
+                {{ form.phone }}
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Adresse</label>
+                {{ form.address }}
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Mot de passe</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.password1.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Confirmation du mot de passe</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.password2.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                Créer mon compte
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e9ecef;">
+            <p>Déjà un compte ? <a href="{% url 'login' %}" style="color: #667eea; text-decoration: none;">Se connecter</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Ajouter des classes CSS aux champs de formulaire
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+        element.classList.add('form-control');
+    });
+</script>
+{% endblock %}

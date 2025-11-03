@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Notifications - E-commerce{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 2rem;">
+        <h1> Mes Notifications</h1>
+        {% if notifications %}
+        <form method="post" action="{% url 'notifications' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn" style="background: #6c757d; color: white;">
+                📪 Tout marquer comme lu
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if notifications %}
+    <div class="card">
+        {% for notification in notifications %}
+        <div class="padding: 1.5rem; border-bottom: 1px solid #e9ecef; {% if not notification.is_read %}background: #f8f9fa; border-left: 4px solid #007bff;{% endif %}">
+            <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 0.5rem;">
+                <div style="flex: 1;">
+                    <p class="margin-bottom: 0.5rem; font-size: 1.1rem; {% if not notification.is_read %}font-weight: 600;{% endif %}">
+                        {{ notification.message }}
+                    </p>
+                    <div style="color: #666; font-size: 0.9rem;">
+                        {{ notification.created_at|date:"d/m/Y à H:i" }}
+                    </div>
+                </div>
+                {% if not notification.is_read %}
+                <span class="badge" style="background: #007bff; color: white; font-size: 0.7rem;">
+                    Nouveau
+                </span>
+                {% endif %}
+            </div>
+            {% if notification.link %}
+            <a href="{{ notification.link }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                 Voir les détails
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <p style="color: #666;">
+            {{ notifications.count }} notification(s)
+        </p>
+    </div>
+
+    {% else %}
+    <div class="card" style="text-align: center; padding: 4rem;">
+        <div style="font-size: 5rem; margin-bottom: 2rem;">📭</div>
+        <h2 style="margin-bottom: 1rem; color: #666;">Aucune notification</h2>
+        <p style="color: #999;">
+            Vous n'avez aucune notification pour le moment.
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

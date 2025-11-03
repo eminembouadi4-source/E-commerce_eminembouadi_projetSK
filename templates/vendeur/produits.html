@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Produits - E-commerce{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <h1> Mes Produits</h1>
+    <a href="{% url 'add_product' %}" class="btn btn-success">➕ Ajouter un produit</a>
+</div>
+
+{% if products %}
+<div class="grid grid-3">
+    {% for product in products %}
+    <div class="product-card">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+        {% else %}
+        <div style="width: 100%; height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #666;">
+             Aucune image
+        </div>
+        {% endif %}
+        <div class="product-info">
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">{{ product.name }}</h3>
+            
+            <div style="margin-bottom: 0.5rem;">
+                <span class="badge" style="background: #e9ecef; color: #495057; font-size: 0.8rem;">
+                    {{ product.category.name }}
+                </span>
+            </div>
+            
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.4;">
+                {{ product.description|truncatewords:10 }}
+            </p>
+            
+            <div class="product-price" style="font-size: 1.25rem; font-weight: bold; color: #28a745; margin-bottom: 0.5rem;">
+                {{ product.price }} €
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span class="font-size: 0.8rem; color: {% if product.stock > 10 %}#28a745{% elif product.stock > 0 %}#ffc107{% else %}#dc3545{% endif %};">
+                    Stock: {{ product.stock }}
+                </span>
+                
+                <span class="badge {% if product.is_active %}badge-success{% else %}badge-danger{% endif %}" style="font-size: 0.7rem;">
+                    {% if product.is_active %}Actif{% else %}Inactif{% endif %}
+                </span>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{% url 'product_detail' product.id %}" class="btn" style="flex: 1; padding: 0.5rem; text-align: center;">
+                     Voir
+                </a>
+                <a href="#" class="btn btn-primary" style="flex: 1; padding: 0.5rem; text-align: center;">
+                     Modifier
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+    <p style="color: #666;">
+        {{ products.count }} produit(s) au total
+    </p>
+</div>
+
+{% else %}
+<div class="card" style="text-align: center; padding: 4rem;">
+    <div style="font-size: 5rem; margin-bottom: 2rem;">📦</div>
+    <h2 style="margin-bottom: 1rem; color: #666;">Aucun produit</h2>
+    <p style="color: #999; margin-bottom: 2rem;">
+        Vous n'avez pas encore ajouté de produits à votre catalogue.
+    </p>
+    <a href="{% url 'add_product' %}" class="btn btn-success" style="padding: 1rem 2rem; font-size: 1.1rem;">
+        ➕ Ajouter mon premier produit
+    </a>
+</div>
+{% endif %}
+{% endblock %}

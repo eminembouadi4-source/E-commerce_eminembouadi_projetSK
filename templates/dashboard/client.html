@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Client - E-commerce{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem;"> Mon Compte</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ user.orders.count }}</div>
+        <div class="stat-label">Commandes</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ user.cart.total_items }}</div>
+        <div class="stat-label">Articles dans le panier</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ user.notifications.count }}</div>
+        <div class="stat-label">Notifications</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom: 1.5rem;"> Mes Commandes Récentes</h3>
+    
+    {% if orders %}
+    <div class="table">
+        <table style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>N° Commande</th>
+                    <th>Date</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><strong>#{{ order.order_number }}</strong></td>
+                    <td>{{ order.created_at|date:"d/m/Y" }}</td>
+                    <td>{{ order.total_amount }} €</td>
+                    <td>
+                        <span class="badge {% if order.status == 'livre' %}badge-success{% elif order.status == 'annule' %}badge-danger{% else %}badge-warning{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'order_detail' order.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Voir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: #666;">
+        <p style="font-size: 1.2rem; margin-bottom: 1rem;"> Aucune commande pour le moment</p>
+        <p>Découvrez nos produits et faites votre première commande !</p>
+        <a href="{% url 'product_list' %}" class="btn btn-primary" style="margin-top: 1rem;">Voir les produits</a>
+    </div>
+    {% endif %}
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+    <div class="card">
+        <h4 style="margin-bottom: 1rem;"> Mes Informations</h4>
+        <div style="line-height: 2;">
+            <div><strong>Nom d'utilisateur:</strong> {{ user.username }}</div>
+            <div><strong>Email:</strong> {{ user.email }}</div>
+            <div><strong>Téléphone:</strong> {{ user.phone|default:"Non renseigné" }}</div>
+            <div><strong>Adresse:</strong> {{ user.address|default:"Non renseignée"|truncatewords:10 }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h4 style="margin-bottom: 1rem;">🛒 Mon Panier</h4>
+        {% with cart=user.cart %}
+            {% if cart.items.count > 0 %}
+            <div style="margin-bottom: 1rem;">
+                <div><strong>Articles:</strong> {{ cart.total_items }}</div>
+                <div><strong>Total:</strong> {{ cart.total_price }} €</div>
+            </div>
+            <a href="{% url 'cart_view' %}" class="btn btn-primary" style="width: 100%;">Voir mon panier</a>
+            {% else %}
+            <p style="text-align: center; color: #666; padding: 1rem;">Votre panier est vide</p>
+            <a href="{% url 'product_list' %}" class="btn" style="width: 100%;">Commencer mes achats</a>
+            {% endif %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - E-commerce{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <h1 style="margin-bottom: 2rem;"> Finaliser ma commande</h1>
+
+    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 3rem;">
+        <!-- Formulaire de commande -->
+        <div class="card">
+            <h3 style="margin-bottom: 1.5rem;"> Informations de livraison</h3>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Adresse de livraison</label>
+                    {{ form.shipping_address }}
+                    {% if form.shipping_address.errors %}
+                        <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ form.shipping_address.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Adresse de facturation</label>
+                    {{ form.billing_address }}
+                    {% if form.billing_address.errors %}
+                        <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ form.billing_address.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin: 2rem 0;">
+                    <h4 style="margin-bottom: 1rem;"> Paiement sécurisé</h4>
+                    <p style="color: #666; margin-bottom: 1rem;">
+                        Votre paiement est sécurisé. Nous utilisons les dernières technologies de cryptage.
+                    </p>
+                    <div style="display: flex; gap: 1rem; font-size: 2rem;">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width: 100%; padding: 1.2rem; font-size: 1.2rem;">
+                     Payer {{ cart.total_price }} €
+                </button>
+            </form>
+        </div>
+
+        <!-- Récapitulatif de la commande -->
+        <div>
+            <div class="card">
+                <h3 style="margin-bottom: 1.5rem;">📋 Récapitulatif</h3>
+                
+                <div style="margin-bottom: 2rem;">
+                    {% for item in cart.items.all %}
+                    <div style="display: flex; justify-content: between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #e9ecef;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
+                            <div>
+                                <div style="font-weight: 600;">{{ item.product.name }}</div>
+                                <div style="color: #666; font-size: 0.9rem;">{{ item.quantity }} × {{ item.product.price }} €</div>
+                            </div>
+                        </div>
+                        <strong>{{ item.total_price }} €</strong>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+                    <div style="display: flex; justify-content: between; margin-bottom: 0.5rem;">
+                        <span>Sous-total:</span>
+                        <strong>{{ cart.total_price }} €</strong>
+                    </div>
+                    <div style="display: flex; justify-content: between; margin-bottom: 0.5rem;">
+                        <span>Livraison:</span>
+                        <strong style="color: #28a745;">Gratuite</strong>
+                    </div>
+                    <div style="display: flex; justify-content: between; margin-bottom: 0.5rem;">
+                        <span>Taxes:</span>
+                        <strong>Incluses</strong>
+                    </div>
+                    <div style="display: flex; justify-content: between; font-size: 1.3rem; padding-top: 1rem; border-top: 2px solid #dee2e6;">
+                        <span>Total:</span>
+                        <strong style="color: #28a745;">{{ cart.total_price }} €</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 1.5rem; background: #e7f3ff; border-left: 4px solid #007bff;">
+                <h4 style="margin-bottom: 1rem; color: #004085;"> Livraison</h4>
+                <p style="color: #004085; margin-bottom: 0.5rem;">
+                    <strong>Livraison standard offerte</strong>
+                </p>
+                <p style="color: #004085; font-size: 0.9rem;">
+                    Délai de livraison: 2-4 jours ouvrés
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="{% url 'cart_view' %}" class="btn">← Retour au panier</a>
+    </div>
+</div>
+
+<script>
+    // Ajouter des classes CSS aux champs de formulaire
+    document.querySelectorAll('textarea').forEach(element => {
+        element.classList.add('form-control');
+        element.style.minHeight = '100px';
+        element.style.resize = 'vertical';
+    });
+</script>
+{% endblock %}

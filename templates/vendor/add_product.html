@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter un Produit - E-commerce{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+        <a href="{% url 'vendor_products' %}" class="btn">← Retour à mes produits</a>
+        <h1>➕ Ajouter un produit</h1>
+    </div>
+
+    <div class="card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nom du produit</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.name.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.description.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Prix (€)</label>
+                    {{ form.price }}
+                    {% if form.price.errors %}
+                        <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ form.price.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Stock</label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}
+                        <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ form.stock.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Catégorie</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                        <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ form.category.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Image du produit</label>
+                    {{ form.image }}
+                    {% if form.image.errors %}
+                        <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ form.image.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success" style="width: 100%; padding: 1.2rem; font-size: 1.1rem; margin-top: 1rem;">
+                💾 Enregistrer le produit
+            </button>
+        </form>
+    </div>
+
+    <div class="card" style="margin-top: 2rem; background: #e7f3ff; border-left: 4px solid #007bff;">
+        <h3 style="margin-bottom: 1rem; color: #004085;"> Conseils pour vos produits</h3>
+        <ul style="color: #004085; padding-left: 1.5rem;">
+            <li>Utilisez des photos de haute qualité</li>
+            <li>Rédigez des descriptions détaillées et précises</li>
+            <li>Fixez des prix compétitifs</li>
+            <li>Maintenez votre stock à jour</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Ajouter des classes CSS aux champs de formulaire
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+        element.classList.add('form-control');
+    });
+    
+    // Ajuster la hauteur du textarea description
+    const descriptionTextarea = document.querySelector('textarea[name="description"]');
+    if (descriptionTextarea) {
+        descriptionTextarea.style.minHeight = '120px';
+        descriptionTextarea.style.resize = 'vertical';
+    }
+</script>
+{% endblock %}
