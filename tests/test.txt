@@ -1,0 +1,328 @@
+# TEST PLAN & TESTS FOR DJANGO E‑COMMERCE PROJECT
+# -------------------------------------------------
+# DOCUMENTATION (Test Plan)
+# Format: Markdown
+
+"""
+# Plan de Test — Projet e‑commerce Django
+
+## 1. Objectifs
+- Vérifier la correctitude fonctionnelle (models, views, forms, API).
+- Vérifier la sécurité basique avec `bandit` et l'analyse statique (flake8).
+- Mesurer la couverture de tests (pytest-cov).
+- Automatiser l'exécution via CI (GitHub Actions exemple).
+
+## 2. Portée
+- Tests unitaires: models, méthodes utilitaires, properties.
+- Tests d'intégration: création de commande via `checkout`, workflow panier -> commande.
+- Tests de vues: accès, permissions (vendeur vs client), ajout au panier.
+- Tests d'API (si DRF présent) — non inclus ici faute de serializers fournis.
+- Tests statiques: flake8, bandit.
+
+## 3. Outils
+- `pytest` + `pytest-django`
+- `pytest-cov` pour couverture
+- `factory_boy` (optionnel) pour fixtures (ici on utilise fixtures manuelles pour simplicité)
+- `bandit` pour audit de sécurité
+- `flake8` pour linters
+
+## 4. Environnement
+- Remplacer `your_project.settings` par le nom réel du settings module de ton projet
+  (ex: `mysite.settings`)
+
+## 5. Exécution
+```bash
+pip install pytest pytest-django pytest-cov bandit flake8 Pillow
+export DJANGO_SETTINGS_MODULE=your_project.settings
+pytest --maxfail=1 --disable-warnings -q
+pytest --cov=.
+bandit -r .
+flake8 .
+```
+
+## 6. Critères de succès
+- Tous les tests unitaires et d'intégration passent.
+- Couverture > 80% (objectif, mais dépend de la base de code).
+- Aucune vulnérabilité critique signalée par bandit.
+
+"""
+
+# -------------------------------------------------
+# INSTRUCTIONS: Replace 'your_project.settings' below with your Django settings module.
+# The tests below assume the app name is the app where your models/views live. If your
+# app has a different name, update import paths accordingly.
+# -------------------------------------------------
+
+# === FILE: pytest.ini ===
+# Put this at the repository root
+[pytest]
+DJANGO_SETTINGS_MODULE = your_project.settings
+python_files = tests.py test_*.py *_tests.py
+addopts = --strict-markers
+
+# === FILE: conftest.py ===
+import pytest
+from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
+from decimal import Decimal
+
+User = get_user_model()
+
+@pytest.fixture
+def create_user(db):
+    def _create(username='user1', password='pass1234', user_type='client', is_approved=False):
+        user = User.objects.create_user(username=username, password=password, user_type=user_type)
+        user.is_approved = is_approved
+        user.save()
+        return user
+    return _create
+
+@pytest.fixture
+def category(db):
+    from .models import Category
+    return Category.objects.create(name='TestCat', description='Desc')
+
+@pytest.fixture
+def product(db, create_user, category):
+    from .models import Product
+    vendeur = create_user(username='vendeur1', user_type='vendeur', is_approved=True)
+    # create a small image file to satisfy ImageField
+    image = SimpleUploadedFile('test.jpg', b'file_content', content_type='image/jpeg')
+    return Product.objects.create(vendeur=vendeur, name='Prod1', description='desc', price=Decimal('9.90'), category=category, image=image, stock=5)
+
+@pytest.fixture
+def cart(db, create_user, product):
+    from .models import Cart, CartItem
+    user = create_user(username='client1')
+    cart = Cart.objects.create(user=user)
+    CartItem.objects.create(cart=cart, product=product, quantity=2)
+    return cart
+
+@pytest.fixture
+def order(db, create_user, product):
+    from .models import Order, OrderItem
+    user = create_user(username='client2')
+    order = Order.objects.create(user=user, order_number='CMDTEST', total_amount=product.price * 2, shipping_address='A', billing_address='B')
+    OrderItem.objects.create(order=order, product=product, quantity=2, price=product.price)
+    return order
+
+# === FILE: tests/test_models.py ===
+import pytest
+from decimal import Decimal
+
+from django.utils import timezone
+
+@pytest.mark.django_db
+def test_custom_user_str(create_user):
+    user = create_user(username='bob', user_type='client')
+    assert str(user) == f"{user.username} ({user.get_user_type_display()})"
+
+@pytest.mark.django_db
+def test_category_str(category):
+    assert str(category) == 'TestCat'
+
+@pytest.mark.django_db
+def test_product_str(product):
+    assert str(product) == 'Prod1'
+    assert product.stock == 5
+    assert product.is_active is True
+
+@pytest.mark.django_db
+def test_cart_totals(cart):
+    cart.refresh_from_db()
+    # items: 1 product price 9.90 quantity 2 => total 19.80
+    assert cart.total_items == 2
+    assert float(cart.total_price) == pytest.approx(19.80, rel=1e-3)
+
+@pytest.mark.django_db
+def test_cartitem_total_price(cart):
+    item = cart.items.first()
+    assert float(item.total_price) == pytest.approx(float(item.product.price * item.quantity), rel=1e-3)
+
+@pytest.mark.django_db
+def test_order_item_total(order):
+    item = order.items.first()
+    assert float(item.total_price) == pytest.approx(float(item.price * item.quantity), rel=1e-3)
+
+# === FILE: tests/test_views.py ===
+import pytest
+from django.urls import reverse
+
+@pytest.mark.django_db
+def test_accueil_view(client, product):
+    url = reverse('accueil')
+    resp = client.get(url)
+    assert resp.status_code == 200
+    assert 'products' in resp.context
+
+@pytest.mark.django_db
+def test_product_list_requires_login(client):
+    url = reverse('product_list')
+    resp = client.get(url)
+    # should redirect to login
+    assert resp.status_code in (302, 301)
+
+@pytest.mark.django_db
+def test_product_detail_view(client, product):
+    # login a user
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    u = User.objects.create_user(username='cli', password='1234')
+    client.login(username='cli', password='1234')
+    url = reverse('product_detail', kwargs={'pk': product.pk})
+    resp = client.get(url)
+    assert resp.status_code == 200
+    assert 'product' in resp.context
+
+@pytest.mark.django_db
+def test_add_to_cart_flow(client, create_user, product):
+    user = create_user(username='cadd')
+    client.login(username='cadd', password='pass1234')
+    url = reverse('add_to_cart', kwargs={'product_id': product.id})
+    resp = client.get(url)
+    # add_to_cart redirects to cart_view
+    assert resp.status_code in (302, 301)
+    from .models import Cart
+    cart = Cart.objects.get(user=user)
+    assert cart.items.count() >= 1
+
+@pytest.mark.django_db
+def test_update_cart_item_delete_when_zero(client, create_user, product):
+    # add cart and item
+    user = create_user(username='cupdate')
+    client.login(username='cupdate', password='pass1234')
+    from .models import Cart, CartItem
+    cart = Cart.objects.create(user=user)
+    item = CartItem.objects.create(cart=cart, product=product, quantity=1)
+    url = reverse('update_cart_item', kwargs={'item_id': item.id})
+    # simulate POST with quantity=0 -> should delete
+    resp = client.post(url, data={'quantity': '0'})
+    assert resp.status_code in (302, 301)
+    assert CartItem.objects.filter(id=item.id).count() == 0
+
+@pytest.mark.django_db
+def test_checkout_creates_order(client, create_user, product):
+    user = create_user(username='ccheckout')
+    client.login(username='ccheckout', password='pass1234')
+    from .models import Cart, CartItem
+    cart = Cart.objects.create(user=user)
+    CartItem.objects.create(cart=cart, product=product, quantity=2)
+    url = reverse('checkout')
+    # get the form
+    resp = client.get(url)
+    assert resp.status_code == 200
+    # post the order form minimal payload (shipping/billing)
+    data = {'shipping_address': 'A', 'billing_address': 'B'}
+    resp2 = client.post(url, data=data)
+    # should redirect to order detail
+    assert resp2.status_code in (302, 301)
+
+# === FILE: tests/test_notifications.py ===
+import pytest
+
+@pytest.mark.django_db
+def test_notifications_marked_read(client, create_user):
+    user = create_user(username='notif')
+    from .models import Notification
+    Notification.objects.create(user=user, message='Hello')
+    client.login(username='notif', password='pass1234')
+    from django.urls import reverse
+    resp = client.get(reverse('notifications'))
+    assert resp.status_code == 200
+    # notifications should be marked read
+    assert Notification.objects.filter(user=user, is_read=True).exists()
+
+# === FILE: tests/test_dashboard.py ===
+import pytest
+from django.urls import reverse
+
+@pytest.mark.django_db
+def test_vendor_dashboard_access(client, create_user, product):
+    vendor = create_user(username='vtest', user_type='vendeur', is_approved=True)
+    client.login(username='vtest', password='pass1234')
+    url = reverse('dashboard')
+    resp = client.get(url)
+    assert resp.status_code == 200
+    assert 'products' in resp.context
+
+@pytest.mark.django_db
+def test_client_dashboard_access(client, create_user):
+    client_user = create_user(username='ctest', user_type='client')
+    client.login(username='ctest', password='pass1234')
+    from django.urls import reverse
+    resp = client.get(reverse('dashboard'))
+    assert resp.status_code == 200
+
+# === FILE: tests/test_order_models_and_views.py ===
+import pytest
+from decimal import Decimal
+
+@pytest.mark.django_db
+def test_order_str_and_items(order):
+    assert 'CMDTEST' in str(order)
+    assert order.items.count() == 1
+
+# === FILE: tests/test_static_and_security.sh ===
+# shell script to run static checks
+# Usage: sh tests/test_static_and_security.sh
+
+"""
+#!/usr/bin/env bash
+set -e
+flake8 .
+bandit -r . -lll
+"""
+
+# === FILE: .github/workflows/ci.yml ===
+# GitHub Actions minimal workflow
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-django pytest-cov flake8 bandit Pillow
+      - name: Run tests
+        env:
+          DJANGO_SETTINGS_MODULE: your_project.settings
+        run: |
+          pytest --maxfail=1 --disable-warnings -q
+      - name: Run bandit
+        run: bandit -r .
+
+# === FILE: TEST_REPORT_TEMPLATE.md ===
+"""
+# Rapport de Test
+
+## Résumé
+- Date: {DATE}
+- Environnement: (branch, commit)
+- Résultat global: PASS/FAIL
+
+## Détails des tests exécutés
+- Unit tests: N tests — X passed, Y failed
+- Integration tests: ...
+- Couverture: XX% (pytest-cov)
+- Bandit: vulnerabilities found: (list)
+- Flake8: issues: (list)
+
+## Bugs majeurs
+1. Description, étapes pour reproduire, logs, gravité, assigné à
+
+## Recommandations
+- Corriger les validations sur ...
+- Ajouter tests pour ...
+
+"""
+
+# End of document
