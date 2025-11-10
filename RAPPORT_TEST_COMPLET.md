@@ -482,3 +482,18 @@ L'application E-commerce Django est **fonctionnellement correcte** et **sécuris
 **Version Django:** 5.2.6  
 **Version Python:** 3.13.7
 
+## 🛡️ Matrice de Risques par Fonctionnalité
+
+| Fonctionnalité | Probabilité d'échec | Impact | Priorité |
+|----------------|---------------------|--------|----------|
+| Inscription & login | Moyenne | Élevé | 🔴 Haute |
+| Gestion produits vendeur | Faible | Moyen | 🟡 Moyenne |
+| Panier | Moyenne | Élevé | 🔴 Haute |
+| Commande / Checkout | Faible | Élevé | 🟠 Haute |
+| Notifications | Faible | Faible | 🟢 Basse |
+| Dashboard vendeur | Moyenne | Moyen | 🟡 Moyenne |
+| Dashboard client | Faible | Moyen | 🟡 Moyenne |
+| Gestion emails | Moyenne | Élevé | 🔴 Haute |
+| Sécurité & permissions | Faible | Élevé | 🟠 Haute |
+| Notifications système | Faible | Moyen | 🟡 Moyenne |
+
