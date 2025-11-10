@@ -314,11 +314,11 @@ Le scan de sécurité Bandit n'a détecté aucune vulnérabilité de sécurité 
 **Total de problèmes détectés:** ~200+ (principalement style)
 
 **Types de problèmes:**
-- **E501:** Lignes trop longues (>79 caractères) - ~80 occurrences
-- **W293:** Lignes blanches contenant des espaces - ~60 occurrences
-- **E302:** Espacement manquant entre fonctions - ~40 occurrences
-- **F403/F405:** Imports avec `*` (peuvent masquer des erreurs) - ~30 occurrences
-- **W292:** Pas de saut de ligne en fin de fichier - ~10 occurrences
+- **E501:** Lignes trop longues (>79 caractères) - ~80 occurrences (ex: shop/admin.py:7, shop/views.py:63, shop/forms.py:23)
+- **W293:** Lignes blanches contenant des espaces - ~60 occurrences (ex: shop/admin.py:10, shop/views.py:21, shop/emails.py:14)
+- **E302:** Espacement manquant entre fonctions - ~40 occurrences (ex: shop/admin.py:5, shop/models.py:5, shop/views.py:11)
+- **F403/F405:** Imports avec `*` (peuvent masquer des erreurs) - ~30 occurrences (ex: shop/views.py:7, shop/views.py:8, shop/views.py:9)
+- **W292:** Pas de saut de ligne en fin de fichier - ~10 occurrences (ex: shop/emails.py:163, shop/apps.py:5, shop/urls.py:27)
 
 **Gravité:** Faible (problèmes de style, pas de bugs fonctionnels)
 
