@@ -54,6 +54,24 @@ def test_update_cart_item_delete_when_zero(client, create_user, product):
     assert CartItem.objects.filter(id=item.id).count() == 0
 
 @pytest.mark.django_db
+def test_update_cart_item_ajax_updates_totals(client, create_user, product):
+    user = create_user(username='cajax')
+    client.login(username='cajax', password='pass1234')
+    from shop.models import Cart, CartItem
+    cart = Cart.objects.create(user=user)
+    item = CartItem.objects.create(cart=cart, product=product, quantity=1)
+    url = reverse('update_cart_item', kwargs={'item_id': item.id})
+    response = client.post(
+        url,
+        data={'quantity': '3'},
+        HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+    )
+    assert response.status_code == 200, f"Une requête AJAX devrait renvoyer 200, reçu {response.status_code}"
+    payload = response.json()
+    assert payload.get('item_total') == str(product.price * 3)
+    assert payload.get('cart_total') == str(product.price * 3)
+
+@pytest.mark.django_db
 def test_checkout_creates_order(client, create_user, product):
     user = create_user(username='ccheckout')
     client.login(username='ccheckout', password='pass1234')

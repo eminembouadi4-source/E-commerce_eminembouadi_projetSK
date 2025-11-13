@@ -4,6 +4,7 @@ Tests de sécurité et permissions
 import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.contrib.messages import get_messages
 
 User = get_user_model()
 
@@ -23,6 +24,8 @@ class TestAuthentication:
         })
         assert response.status_code == 200  # Reste sur la page de login
         assert not response.wsgi_request.user.is_authenticated
+        messages = list(get_messages(response.wsgi_request))
+        assert messages, "Une tentative de connexion échouée doit générer un message utilisateur."
     
     def test_login_success(self, client, create_user):
         """Test: Login réussi avec bons identifiants"""
