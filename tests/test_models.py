@@ -35,3 +35,8 @@ def test_order_item_total(order):
     item = order.items.first()
     assert float(item.total_price) == pytest.approx(float(item.price * item.quantity), rel=1e-3)
 
+
+
+
+
+

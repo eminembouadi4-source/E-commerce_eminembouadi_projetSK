@@ -12,3 +12,8 @@ def test_notifications_marked_read(client, create_user):
     # notifications should be marked read
     assert Notification.objects.filter(user=user, is_read=True).exists()
 
+
+
+
+
+

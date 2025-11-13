@@ -70,3 +70,8 @@ def test_checkout_creates_order(client, create_user, product):
     # should redirect to order detail
     assert resp2.status_code in (302, 301)
 
+
+
+
+
+

@@ -44,3 +44,8 @@ def order(db, create_user, product):
     OrderItem.objects.create(order=order, product=product, quantity=2, price=product.price)
     return order
 
+
+
+
+
+

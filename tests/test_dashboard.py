@@ -18,3 +18,8 @@ def test_client_dashboard_access(client, create_user):
     resp = client.get(reverse('dashboard'))
     assert resp.status_code == 200
 
+
+
+
+
+
